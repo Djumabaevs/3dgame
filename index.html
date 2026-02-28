@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BioLab: Containment Breach</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Title Screen -->
+    <div id="title-screen">
+        <h1>BIOLAB</h1>
+        <h2>Containment Breach</h2>
+        <p class="start-prompt" id="start-prompt">CLICK TO START</p>
+    </div>
+
+    <!-- Death Screen -->
+    <div id="death-screen">
+        <h1>YOU DIED</h1>
+        <button id="restart-death">TRY AGAIN</button>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-screen">
+        <h1>YOU ESCAPED</h1>
+        <div class="stats" id="victory-stats"></div>
+        <button id="restart-victory">PLAY AGAIN</button>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div id="health-bar-container">
+            <div id="health-bar"></div>
+        </div>
+        <span id="health-text">HP: 100</span>
+
+        <div id="keycards">
+            <div class="keycard-icon" id="kc-red">RED</div>
+            <div class="keycard-icon" id="kc-blue">BLU</div>
+            <div class="keycard-icon" id="kc-green">GRN</div>
+        </div>
+
+        <div id="crosshair"></div>
+        <div id="interact-prompt">Press E to interact</div>
+        <div id="message"></div>
+
+        <div id="minimap">
+            <canvas id="minimap-canvas" width="150" height="150"></canvas>
+        </div>
+    </div>
+
+    <!-- Overlays -->
+    <div id="damage-overlay"></div>
+    <div id="low-health-overlay"></div>
+    <div id="jumpscare-overlay">
+        <div class="scare-face">&#9760;</div>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls">
+        <div id="joystick-zone">
+            <div id="joystick-base">
+                <div id="joystick-thumb"></div>
+            </div>
+        </div>
+        <div id="look-zone"></div>
+        <div id="mobile-buttons">
+            <div class="mobile-btn" id="btn-interact">USE</div>
+            <div class="mobile-btn" id="btn-flashlight">LIGHT</div>
+            <div class="mobile-btn" id="btn-sprint">RUN</div>
+        </div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container"></div>
+
+    <!-- Loading -->
+    <div id="loading">LOADING...</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="game.js"></script>
+</body>
+</html>

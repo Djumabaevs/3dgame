@@ -1,0 +1,476 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background: #000;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+canvas {
+    display: block;
+}
+
+/* ── Title Screen ─────────────────────────────── */
+#title-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    cursor: pointer;
+}
+
+#title-screen h1 {
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    color: #c00;
+    text-shadow: 0 0 20px #f00, 0 0 40px #900;
+    letter-spacing: 4px;
+    text-align: center;
+    animation: flicker 3s infinite;
+    padding: 0 1rem;
+}
+
+#title-screen h2 {
+    font-size: clamp(1rem, 3vw, 1.8rem);
+    color: #800;
+    text-shadow: 0 0 10px #a00;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+#title-screen .start-prompt {
+    margin-top: 3rem;
+    font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+    color: #aaa;
+    animation: pulse 2s infinite;
+}
+
+@keyframes flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+    20%, 24%, 55% { opacity: 0.4; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* ── Death Screen ─────────────────────────────── */
+#death-screen {
+    position: fixed;
+    inset: 0;
+    background: rgba(80, 0, 0, 0.9);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+#death-screen h1 {
+    font-size: clamp(3rem, 8vw, 6rem);
+    color: #f00;
+    text-shadow: 0 0 30px #f00;
+    animation: flicker 1.5s infinite;
+}
+
+#death-screen button {
+    margin-top: 2rem;
+    padding: 1rem 3rem;
+    font-size: 1.2rem;
+    font-family: 'Courier New', monospace;
+    background: #600;
+    color: #fff;
+    border: 2px solid #f00;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#death-screen button:hover {
+    background: #900;
+}
+
+/* ── Victory Screen ───────────────────────────── */
+#victory-screen {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+#victory-screen h1 {
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: #0f0;
+    text-shadow: 0 0 20px #0f0;
+}
+
+#victory-screen .stats {
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
+    color: #0a0;
+    text-align: center;
+    line-height: 2;
+}
+
+#victory-screen button {
+    margin-top: 2rem;
+    padding: 1rem 3rem;
+    font-size: 1.2rem;
+    font-family: 'Courier New', monospace;
+    background: #060;
+    color: #fff;
+    border: 2px solid #0f0;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#victory-screen button:hover {
+    background: #090;
+}
+
+/* ── HUD ──────────────────────────────────────── */
+#hud {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+}
+
+/* Health Bar */
+#health-bar-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 200px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #600;
+    border-radius: 2px;
+}
+
+#health-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #a00, #f00);
+    transition: width 0.3s;
+    border-radius: 1px;
+}
+
+#health-text {
+    position: absolute;
+    top: 22px;
+    left: 24px;
+    font-size: 0.7rem;
+    color: #ccc;
+    text-shadow: 1px 1px 2px #000;
+}
+
+/* Keycards */
+#keycards {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.keycard-icon {
+    width: 36px;
+    height: 24px;
+    border-radius: 3px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    opacity: 0.25;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.keycard-icon.collected {
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 10px currentColor;
+}
+
+#kc-red { background: #900; color: #faa; }
+#kc-blue { background: #009; color: #aaf; }
+#kc-green { background: #090; color: #afa; }
+
+/* Crosshair */
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+}
+
+#crosshair::before,
+#crosshair::after {
+    content: '';
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+#crosshair::before {
+    width: 2px;
+    height: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#crosshair::after {
+    width: 100%;
+    height: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Interact prompt */
+#interact-prompt {
+    position: absolute;
+    bottom: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: #ff0;
+    text-shadow: 0 0 8px #ff0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    text-align: center;
+    white-space: nowrap;
+}
+
+#interact-prompt.visible {
+    opacity: 1;
+}
+
+/* Messages */
+#message {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    color: #fff;
+    text-shadow: 0 0 8px #000;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-align: center;
+    max-width: 90vw;
+}
+
+#message.visible {
+    opacity: 1;
+}
+
+/* Minimap */
+#minimap {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+    height: 150px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#minimap canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Damage flash */
+#damage-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(150, 0, 0, 0.6));
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+    z-index: 9;
+}
+
+/* Jump scare overlay */
+#jumpscare-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    pointer-events: none;
+}
+
+#jumpscare-overlay .scare-face {
+    font-size: 30vmin;
+    color: #f00;
+    text-shadow: 0 0 50px #f00;
+    animation: scarePulse 0.15s infinite;
+}
+
+@keyframes scarePulse {
+    0% { transform: scale(1) rotate(-2deg); }
+    50% { transform: scale(1.1) rotate(2deg); }
+    100% { transform: scale(1) rotate(-2deg); }
+}
+
+/* ── Mobile Controls ──────────────────────────── */
+#mobile-controls {
+    display: none;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.mobile-visible #mobile-controls {
+    display: block;
+}
+
+#joystick-zone {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 140px;
+    height: 140px;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+#joystick-base {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+#joystick-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    position: absolute;
+    left: 35px;
+    bottom: 35px;
+    transition: none;
+}
+
+#look-zone {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+#mobile-buttons {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.mobile-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 0.7rem;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: auto;
+    touch-action: manipulation;
+    line-height: 1.1;
+}
+
+.mobile-btn:active {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+#btn-sprint {
+    background: rgba(255, 150, 0, 0.15);
+    border-color: rgba(255, 150, 0, 0.4);
+}
+
+#btn-interact {
+    background: rgba(255, 255, 0, 0.15);
+    border-color: rgba(255, 255, 0, 0.4);
+}
+
+#btn-flashlight {
+    background: rgba(100, 200, 255, 0.15);
+    border-color: rgba(100, 200, 255, 0.4);
+}
+
+/* Low health vignette */
+#low-health-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 8;
+    opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(100, 0, 0, 0.5));
+    transition: opacity 0.5s;
+}
+
+/* Screen shake handled via JS transform on canvas container */
+#game-container {
+    position: fixed;
+    inset: 0;
+}
+
+/* Loading hint */
+#loading {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    color: #666;
+    font-size: 1.2rem;
+}
