@@ -216,6 +216,39 @@ canvas {
 #kc-blue { background: #009; color: #aaf; }
 #kc-green { background: #090; color: #afa; }
 
+/* Weapon Info */
+#weapon-info {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    text-align: right;
+}
+
+#weapon-name {
+    font-size: 1rem;
+    color: #ff6600;
+    text-shadow: 0 0 8px #ff6600;
+    letter-spacing: 2px;
+}
+
+#ammo-count {
+    font-size: 1.6rem;
+    color: #fff;
+    text-shadow: 0 0 5px #000;
+    font-weight: bold;
+}
+
+/* Kill Counter */
+#kill-counter {
+    position: absolute;
+    top: 48px;
+    left: 20px;
+    font-size: 0.8rem;
+    color: #f44;
+    text-shadow: 0 0 5px #000;
+    letter-spacing: 1px;
+}
+
 /* Crosshair */
 #crosshair {
     position: absolute;
@@ -450,6 +483,11 @@ canvas {
 #btn-flashlight {
     background: rgba(100, 200, 255, 0.15);
     border-color: rgba(100, 200, 255, 0.4);
+}
+
+#btn-weapon {
+    background: rgba(150, 100, 255, 0.15);
+    border-color: rgba(150, 100, 255, 0.4);
 }
 
 /* Low health vignette */
