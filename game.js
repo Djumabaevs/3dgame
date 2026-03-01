@@ -191,8 +191,36 @@ let sniperZoomTimer = 0;
 let flameLoopNode = null, flameLoopGain = null;
 let lastWhisperTime = 0, lastFootstepTime = 0, lastHeartbeatTime = 0;
 
-const MAX_PARTICLES = 150;
+const MAX_PARTICLES = 80;
 const MAX_MINES = 5;
+const MAX_ENV_LIGHTS = 8;
+const MAX_PUDDLES = 5;
+const MAX_SPARK_PANELS = 2;
+const MAX_DETAIL_OBJECTS = 30;
+let detailObjectCount = 0;
+let puddleCount = 0;
+
+// Shared geometry pool (reuse to reduce GC and draw overhead)
+const SHARED_GEO = {
+    wallBox: null, // set per level
+    smallSphere4: new THREE.SphereGeometry(0.05, 4, 4),
+    smallSphere6: new THREE.SphereGeometry(0.06, 4, 4),
+    tinySphere: new THREE.SphereGeometry(0.03, 3, 3),
+    tinyBox: new THREE.BoxGeometry(0.05, 0.05, 0.05),
+    particleBox: new THREE.BoxGeometry(0.04, 0.04, 0.04),
+    shellCasing: new THREE.CylinderGeometry(0.008, 0.008, 0.03, 4),
+    plane1: new THREE.PlaneGeometry(1, 1),
+};
+
+// Shared material pool
+const SHARED_MAT = {
+    blood: new THREE.MeshBasicMaterial({ color: 0xaa0000, transparent: true }),
+    smoke: new THREE.MeshBasicMaterial({ color: 0x222222, transparent: true, opacity: 0.4 }),
+    cyanGlow: new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.9 }),
+    greenGlow: new THREE.MeshBasicMaterial({ color: 0x44ff00, transparent: true, opacity: 0.7 }),
+    sparkYellow: new THREE.MeshBasicMaterial({ color: 0xffdd44, transparent: true, opacity: 1 }),
+    shellBrass: new THREE.MeshStandardMaterial({ color: 0xccaa44, metalness: 0.9, roughness: 0.2 }),
+};
 
 // Boss ref
 let activeBoss = null;
@@ -505,19 +533,19 @@ function init() {
     camera.position.set(6, PLAYER_HEIGHT, 6);
     camera.rotation.order = 'YXZ';
 
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({ antialias: !state.isMobile });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(state.isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = false;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     document.getElementById('game-container').appendChild(renderer.domElement);
 
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
+    const bloomRes = state.isMobile ? 128 : 256;
     const bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        new THREE.Vector2(bloomRes, bloomRes),
         0.6, 0.4, 0.85
     );
     composer.addPass(bloomPass);
@@ -529,10 +557,7 @@ function init() {
     const hemi = new THREE.HemisphereLight(0x0a2040, 0x100808, 0.3);
     scene.add(hemi);
 
-    flashlight = new THREE.SpotLight(0xeeeeff, 4, 35, Math.PI / 5, 0.5, 1.2);
-    flashlight.castShadow = true;
-    flashlight.shadow.mapSize.width = 512;
-    flashlight.shadow.mapSize.height = 512;
+    flashlight = new THREE.SpotLight(0xeeeeff, 9, 50, Math.PI / 3, 0.3, 1.0);
     camera.add(flashlight);
     flashlight.position.set(0, 0, 0);
     flashlightTarget = new THREE.Object3D();
@@ -699,8 +724,6 @@ function buildMap(level) {
     const wallColorHex = '#' + level.wallColor.toString(16).padStart(6, '0');
     const wallTex = makeWallTexture(wallColorHex);
     wallTex.repeat.set(1, 1);
-    const wallNorm = makeWallNormalMap();
-    wallNorm.repeat.set(1, 1);
     const floorTex = makeFloorTexture();
     floorTex.repeat.set(MAP_SIZE, MAP_SIZE);
     const ceilingTex = makeCeilingTexture();
@@ -714,7 +737,6 @@ function buildMap(level) {
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.position.set(MAP_SIZE * CELL_SIZE / 2, 0, MAP_SIZE * CELL_SIZE / 2);
-    floor.receiveShadow = true;
     addLevelObj(floor);
     floorMesh = floor;
 
@@ -735,8 +757,11 @@ function buildMap(level) {
     }
 
     const wallMat = new THREE.MeshStandardMaterial({
-        map: wallTex, normalMap: wallNorm, roughness: 0.7, metalness: 0.3, color: level.wallColor
+        map: wallTex, roughness: 0.7, metalness: 0.3, color: level.wallColor
     });
+
+    detailObjectCount = 0;
+    puddleCount = 0;
 
     let keycardIndex = 0;
     const keycardColors = ['red', 'blue', 'green'];
@@ -779,7 +804,7 @@ function buildMap(level) {
             // B = boss spawn handled in spawnEnemies
 
             if (cell === ' ' || cell === 'E' || cell === 'K' || cell === 'S' || cell === 'B') {
-                if (Math.random() < 0.15) {
+                if (Math.random() < 0.15 && envLights.length < MAX_ENV_LIGHTS) {
                     const colors = [0x00ccff, 0xff6600, 0xff2200, 0x00ff88, 0x8800ff];
                     const col = colors[Math.floor(Math.random() * colors.length)];
                     const cl = new THREE.PointLight(col, 1.2, 12);
@@ -787,15 +812,13 @@ function buildMap(level) {
                     addLevelObj(cl);
                     envLights.push({ light: cl, base: 1.2, color: col });
                 }
-                if (Math.random() < 0.12) {
-                    addLevelObj(createFlickeringLight(posX, posZ));
+                if (detailObjectCount < MAX_DETAIL_OBJECTS) {
+                    if (Math.random() < 0.08) { addLevelObj(createBloodSplatter(posX, posZ)); detailObjectCount++; }
+                    if (Math.random() < 0.08 && detailObjectCount < MAX_DETAIL_OBJECTS) { addWallPipes(posX, posZ); detailObjectCount++; }
+                    if (Math.random() < 0.05 && detailObjectCount < MAX_DETAIL_OBJECTS) { addDebris(posX, posZ); detailObjectCount++; }
+                    if (Math.random() < 0.05 && puddleCount < MAX_PUDDLES) { addPuddle(posX, posZ); puddleCount++; detailObjectCount++; }
+                    if (Math.random() < 0.03 && sparkPanels.length < MAX_SPARK_PANELS) { addSparkPanel(posX, posZ); detailObjectCount++; }
                 }
-                if (Math.random() < 0.08) addLevelObj(createBloodSplatter(posX, posZ));
-                if (Math.random() < 0.1) addWallPipes(posX, posZ);
-                if (Math.random() < 0.06) addDebris(posX, posZ);
-                if (Math.random() < 0.05) addPuddle(posX, posZ);
-                if (Math.random() < 0.04) addWallMonitor(posX, posZ);
-                if (Math.random() < 0.03) addSparkPanel(posX, posZ);
             }
 
             if ('23456'.includes(cell)) {
@@ -903,7 +926,6 @@ function createWall(x, z, material, height) {
     const geo = new THREE.BoxGeometry(currentCellSize, h, currentCellSize);
     const wall = new THREE.Mesh(geo, material);
     wall.position.set(x, h / 2, z);
-    wall.castShadow = true; wall.receiveShadow = true;
     wall.userData.isWall = true;
     wall.userData.box = new THREE.Box3().setFromObject(wall);
     return wall;
@@ -918,7 +940,7 @@ function createDoor(x, z, color, keyRequired) {
         roughness: 0.4, metalness: 0.6
     });
     const door = new THREE.Mesh(geo, mat);
-    door.position.set(x, 1.25, z); door.castShadow = true;
+    door.position.set(x, 1.25, z);
     door.userData.isDoor = true; door.userData.keyRequired = keyRequired;
     door.userData.isOpen = false; door.userData.box = new THREE.Box3().setFromObject(door);
     interactables.push(door);
@@ -1343,7 +1365,7 @@ function flamethrowerFire() {
 function spawnFlameParticles() {
     const dir = new THREE.Vector3();
     camera.getWorldDirection(dir);
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
         const pos = camera.position.clone().add(dir.clone().multiplyScalar(0.6));
         pos.y -= 0.15;
         const vel = dir.clone().multiplyScalar(8 + Math.random() * 4);
@@ -1397,9 +1419,6 @@ function firePlasma() {
     bolt.position.copy(camera.position).add(dir.clone().multiplyScalar(0.5));
     bolt.userData.velocity = dir.clone().multiplyScalar(25);
     bolt.userData.lifetime = 3;
-    // Trail light
-    const light = new THREE.PointLight(0x00ffff, 1, 5);
-    bolt.add(light);
     scene.add(bolt);
     plasmaBolts.push(bolt);
 }
@@ -1438,7 +1457,7 @@ function updatePlasmaBolts(delta) {
         b.userData.lifetime -= delta;
 
         // Trail particles
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.15) {
             const tGeo = new THREE.SphereGeometry(0.02, 4, 4);
             const tMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 });
             const trail = new THREE.Mesh(tGeo, tMat);
@@ -1571,8 +1590,6 @@ function fireAcidBolt(enemy) {
     bolt.userData.velocity = dir.multiplyScalar(12);
     bolt.userData.lifetime = 5;
     bolt.userData.damage = enemy.userData.damage;
-    const light = new THREE.PointLight(0x44ff00, 0.5, 4);
-    bolt.add(light);
     scene.add(bolt);
     acidBolts.push(bolt);
 }
@@ -1618,9 +1635,8 @@ function createExplosion(position) {
 
     effects.push({ type: 'explosion', light, sphere, sphereGeo, sphereMat, core, coreGeo, coreMat, elapsed: 0 });
 
-    for (let i = 0; i < 25; i++) {
-        const size = 0.05 + Math.random() * 0.08;
-        const geo = new THREE.BoxGeometry(size, size, size);
+    for (let i = 0; i < 12; i++) {
+        const geo = SHARED_GEO.tinyBox;
         const colors = [0xff6600, 0xff3300, 0xffaa00, 0x333333, 0xffff44];
         const mat = new THREE.MeshBasicMaterial({
             color: colors[Math.floor(Math.random() * colors.length)], transparent: true
@@ -1775,9 +1791,9 @@ function createEnemy(x, z, type) {
         hp = 60; speed = 5.5; damage = 12; barHeight = 2.2;
         eyeColor = 0x00ff44;
         const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2a4a2a, roughness: 0.8 });
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 1.3), bodyMat);
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 1.3, 6), bodyMat);
         body.position.y = 0.65; group.add(body);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.22), bodyMat);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 6), bodyMat);
         head.position.y = 1.5; group.add(head);
         const eyeMat = new THREE.MeshBasicMaterial({ color: eyeColor });
         const eyeGeo = new THREE.SphereGeometry(0.05);
@@ -2014,7 +2030,7 @@ function killEnemy(enemy) {
         state.slowMo = 0.5;
         state.slowMoTimer = 1.0;
         // Many particles
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 20; i++) {
             const geo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
             const colors = [0xff0000, 0xff4400, 0xffaa00, 0x220000];
             const mat = new THREE.MeshBasicMaterial({ color: colors[Math.floor(Math.random() * colors.length)], transparent: true });
@@ -2068,6 +2084,10 @@ function updateEnemies(delta) {
     enemies.forEach(enemy => {
         if (enemy.userData.health <= 0 && !enemy.userData.dying) return;
 
+        // Skip distant enemies for performance (except dying ones and boss)
+        const enemyDist = enemy.position.distanceTo(camera.position);
+        if (enemyDist > 25 && !enemy.userData.dying && enemy.userData.type !== 'boss') return;
+
         // Death animation
         if (enemy.userData.dying) {
             enemy.userData.deathTime += delta;
@@ -2076,7 +2096,7 @@ function updateEnemies(delta) {
             enemy.traverse(child => {
                 if (child.isMesh && child.material.transparent) child.material.opacity = opacity;
             });
-            if (enemy.userData.deathTime < 1.5 && Math.random() < 0.3) {
+            if (enemy.userData.deathTime < 1.5 && Math.random() < 0.1) {
                 const smokeGeo = new THREE.SphereGeometry(0.08, 4, 4);
                 const smokeMat = new THREE.MeshBasicMaterial({ color: 0x222222, transparent: true, opacity: 0.4 });
                 const smoke = new THREE.Mesh(smokeGeo, smokeMat);
@@ -2137,7 +2157,7 @@ function updateEnemies(delta) {
         }
 
         // Spitter green drip particles
-        if (enemy.userData.type === 'spitter' && Math.random() < 0.05) {
+        if (enemy.userData.type === 'spitter' && Math.random() < 0.02) {
             const dripGeo = new THREE.SphereGeometry(0.02, 4, 4);
             const dripMat = new THREE.MeshBasicMaterial({ color: 0x44ff00, transparent: true, opacity: 0.6 });
             const drip = new THREE.Mesh(dripGeo, dripMat);
@@ -2149,7 +2169,7 @@ function updateEnemies(delta) {
         }
 
         // Smoke trail when chasing
-        if (enemy.userData.state === 'chase' && Math.random() < 0.08 && enemy.userData.type !== 'invisible') {
+        if (enemy.userData.state === 'chase' && Math.random() < 0.03 && enemy.userData.type !== 'invisible') {
             const smokeGeo = new THREE.SphereGeometry(0.06, 4, 4);
             const smokeMat = new THREE.MeshBasicMaterial({ color: 0x181818, transparent: true, opacity: 0.3 });
             const smoke = new THREE.Mesh(smokeGeo, smokeMat);
@@ -2569,19 +2589,12 @@ function triggerJumpScare() {
 }
 
 // ============ FLICKERING LIGHTS & ENV ============
+let flickerLights = [];
 function updateLights() {
-    scene.traverse(obj => {
-        if (obj.userData.flicker && obj.isLight) {
-            if (Math.random() < 0.05) {
-                obj.intensity = Math.random() < 0.3 ? 0 : obj.userData.baseIntensity * (0.5 + Math.random() * 0.5);
-            }
-        }
-    });
-
-    for (const m of monitors) {
-        m.time += 0.016;
-        if (Math.random() < 0.02) {
-            m.mat.emissiveIntensity = Math.random() < 0.3 ? 0.05 : 0.3;
+    // Use tracked array instead of scene.traverse
+    for (const obj of envLights) {
+        if (Math.random() < 0.05) {
+            obj.light.intensity = Math.random() < 0.3 ? 0 : obj.base * (0.5 + Math.random() * 0.5);
         }
     }
 
@@ -2724,7 +2737,7 @@ function setupEventListeners() {
 
 function toggleFlashlight() {
     state.flashlightOn = !state.flashlightOn;
-    flashlight.intensity = state.flashlightOn ? 4 : 0;
+    flashlight.intensity = state.flashlightOn ? 9 : 0;
     showMessage(state.flashlightOn ? 'Flashlight ON' : 'Flashlight OFF');
 }
 
