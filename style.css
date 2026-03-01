@@ -6,7 +6,7 @@
 
 body {
     overflow: hidden;
-    background: #000;
+    background: #050510;
     font-family: 'Courier New', monospace;
     color: #fff;
     user-select: none;
@@ -21,7 +21,7 @@ canvas {
 #title-screen {
     position: fixed;
     inset: 0;
-    background: #000;
+    background: radial-gradient(ellipse at center, #0a0a1a 0%, #050510 70%, #000 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -32,9 +32,9 @@ canvas {
 
 #title-screen h1 {
     font-size: clamp(1.8rem, 5vw, 3.5rem);
-    color: #c00;
-    text-shadow: 0 0 20px #f00, 0 0 40px #900;
-    letter-spacing: 4px;
+    color: #0ff;
+    text-shadow: 0 0 20px #0ff, 0 0 40px #088, 0 0 80px #044;
+    letter-spacing: 8px;
     text-align: center;
     animation: flicker 3s infinite;
     padding: 0 1rem;
@@ -42,17 +42,20 @@ canvas {
 
 #title-screen h2 {
     font-size: clamp(1rem, 3vw, 1.8rem);
-    color: #800;
-    text-shadow: 0 0 10px #a00;
+    color: #ff4400;
+    text-shadow: 0 0 10px #ff4400, 0 0 30px #882200;
     margin-top: 0.5rem;
     text-align: center;
+    letter-spacing: 3px;
 }
 
 #title-screen .start-prompt {
     margin-top: 3rem;
     font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-    color: #aaa;
+    color: #0af;
+    text-shadow: 0 0 8px #0af;
     animation: pulse 2s infinite;
+    letter-spacing: 4px;
 }
 
 @keyframes flicker {
@@ -61,7 +64,7 @@ canvas {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
+    0%, 100% { opacity: 0.3; }
     50% { opacity: 1; }
 }
 
@@ -69,7 +72,7 @@ canvas {
 #death-screen {
     position: fixed;
     inset: 0;
-    background: rgba(80, 0, 0, 0.9);
+    background: rgba(40, 0, 0, 0.95);
     display: none;
     flex-direction: column;
     align-items: center;
@@ -80,8 +83,9 @@ canvas {
 #death-screen h1 {
     font-size: clamp(3rem, 8vw, 6rem);
     color: #f00;
-    text-shadow: 0 0 30px #f00;
+    text-shadow: 0 0 30px #f00, 0 0 60px #800;
     animation: flicker 1.5s infinite;
+    letter-spacing: 6px;
 }
 
 #death-screen button {
@@ -89,23 +93,26 @@ canvas {
     padding: 1rem 3rem;
     font-size: 1.2rem;
     font-family: 'Courier New', monospace;
-    background: #600;
-    color: #fff;
-    border: 2px solid #f00;
+    background: transparent;
+    color: #f44;
+    border: 1px solid #f44;
     cursor: pointer;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    box-shadow: 0 0 15px rgba(255,68,68,0.3), inset 0 0 15px rgba(255,68,68,0.1);
+    transition: all 0.3s;
 }
 
 #death-screen button:hover {
-    background: #900;
+    background: rgba(255,68,68,0.15);
+    box-shadow: 0 0 25px rgba(255,68,68,0.5), inset 0 0 25px rgba(255,68,68,0.2);
 }
 
 /* ── Victory Screen ───────────────────────────── */
 #victory-screen {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(0, 5, 10, 0.95);
     display: none;
     flex-direction: column;
     align-items: center;
@@ -115,16 +122,18 @@ canvas {
 
 #victory-screen h1 {
     font-size: clamp(2rem, 6vw, 4rem);
-    color: #0f0;
-    text-shadow: 0 0 20px #0f0;
+    color: #0ff;
+    text-shadow: 0 0 20px #0ff, 0 0 40px #088;
+    letter-spacing: 4px;
 }
 
 #victory-screen .stats {
     margin-top: 1.5rem;
     font-size: 1.1rem;
-    color: #0a0;
+    color: #0af;
     text-align: center;
     line-height: 2;
+    text-shadow: 0 0 5px #0af;
 }
 
 #victory-screen button {
@@ -132,16 +141,19 @@ canvas {
     padding: 1rem 3rem;
     font-size: 1.2rem;
     font-family: 'Courier New', monospace;
-    background: #060;
-    color: #fff;
-    border: 2px solid #0f0;
+    background: transparent;
+    color: #0ff;
+    border: 1px solid #0ff;
     cursor: pointer;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    box-shadow: 0 0 15px rgba(0,255,255,0.3), inset 0 0 15px rgba(0,255,255,0.1);
+    transition: all 0.3s;
 }
 
 #victory-screen button:hover {
-    background: #090;
+    background: rgba(0,255,255,0.1);
+    box-shadow: 0 0 25px rgba(0,255,255,0.5), inset 0 0 25px rgba(0,255,255,0.2);
 }
 
 /* ── HUD ──────────────────────────────────────── */
@@ -159,27 +171,30 @@ canvas {
     top: 20px;
     left: 20px;
     width: 200px;
-    height: 20px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid #600;
-    border-radius: 2px;
+    height: 16px;
+    background: rgba(0, 20, 30, 0.7);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 1px;
+    box-shadow: 0 0 8px rgba(0,255,255,0.15), inset 0 0 6px rgba(0,0,0,0.5);
 }
 
 #health-bar {
     height: 100%;
     width: 100%;
-    background: linear-gradient(90deg, #a00, #f00);
+    background: linear-gradient(90deg, #0a8, #0ff);
     transition: width 0.3s;
-    border-radius: 1px;
+    border-radius: 0px;
+    box-shadow: 0 0 8px rgba(0,255,255,0.4);
 }
 
 #health-text {
     position: absolute;
     top: 22px;
     left: 24px;
-    font-size: 0.7rem;
-    color: #ccc;
-    text-shadow: 1px 1px 2px #000;
+    font-size: 0.6rem;
+    color: rgba(0,255,255,0.8);
+    text-shadow: 0 0 4px #0ff;
+    letter-spacing: 2px;
 }
 
 /* Keycards */
@@ -194,27 +209,33 @@ canvas {
 .keycard-icon {
     width: 36px;
     height: 24px;
-    border-radius: 3px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    opacity: 0.25;
+    border-radius: 2px;
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    opacity: 0.2;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.55rem;
+    font-size: 0.5rem;
     font-weight: bold;
-    text-shadow: 1px 1px 2px #000;
+    text-shadow: 0 0 4px currentColor;
+    letter-spacing: 1px;
+    background: rgba(0,10,20,0.5);
 }
 
 .keycard-icon.collected {
     opacity: 1;
-    border-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 10px currentColor;
+    border-color: currentColor;
+    box-shadow: 0 0 12px currentColor, inset 0 0 6px rgba(0,0,0,0.3);
 }
 
-#kc-red { background: #900; color: #faa; }
-#kc-blue { background: #009; color: #aaf; }
-#kc-green { background: #090; color: #afa; }
+#kc-red { color: #f44; }
+#kc-blue { color: #44f; }
+#kc-green { color: #4f4; }
+
+#kc-red.collected { background: rgba(255,68,68,0.15); }
+#kc-blue.collected { background: rgba(68,68,255,0.15); }
+#kc-green.collected { background: rgba(68,255,68,0.15); }
 
 /* Weapon Info */
 #weapon-info {
@@ -225,49 +246,51 @@ canvas {
 }
 
 #weapon-name {
-    font-size: 1rem;
-    color: #ff6600;
-    text-shadow: 0 0 8px #ff6600;
-    letter-spacing: 2px;
+    font-size: 0.8rem;
+    color: rgba(0,255,255,0.7);
+    text-shadow: 0 0 6px rgba(0,255,255,0.4);
+    letter-spacing: 3px;
 }
 
 #ammo-count {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     color: #fff;
-    text-shadow: 0 0 5px #000;
+    text-shadow: 0 0 8px rgba(0,255,255,0.3);
     font-weight: bold;
+    letter-spacing: 2px;
 }
 
 /* Kill Counter */
 #kill-counter {
     position: absolute;
-    top: 48px;
+    top: 44px;
     left: 20px;
-    font-size: 0.8rem;
-    color: #f44;
-    text-shadow: 0 0 5px #000;
-    letter-spacing: 1px;
+    font-size: 0.7rem;
+    color: rgba(0,255,255,0.6);
+    text-shadow: 0 0 4px rgba(0,255,255,0.3);
+    letter-spacing: 2px;
 }
 
-/* Crosshair */
+/* Crosshair - thin sci-fi */
 #crosshair {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
 }
 
 #crosshair::before,
 #crosshair::after {
     content: '';
     position: absolute;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 4px rgba(0,255,255,0.4);
 }
 
 #crosshair::before {
-    width: 2px;
+    width: 1px;
     height: 100%;
     left: 50%;
     transform: translateX(-50%);
@@ -275,7 +298,7 @@ canvas {
 
 #crosshair::after {
     width: 100%;
-    height: 2px;
+    height: 1px;
     top: 50%;
     transform: translateY(-50%);
 }
@@ -287,12 +310,16 @@ canvas {
     left: 50%;
     transform: translateX(-50%);
     font-size: clamp(0.9rem, 2vw, 1.1rem);
-    color: #ff0;
-    text-shadow: 0 0 8px #ff0;
+    color: #0ff;
+    text-shadow: 0 0 10px #0ff, 0 0 20px #088;
     opacity: 0;
     transition: opacity 0.2s;
     text-align: center;
     white-space: nowrap;
+    letter-spacing: 2px;
+    border: 1px solid rgba(0,255,255,0.2);
+    padding: 6px 16px;
+    background: rgba(0,20,30,0.5);
 }
 
 #interact-prompt.visible {
@@ -306,15 +333,17 @@ canvas {
     left: 50%;
     transform: translateX(-50%);
     font-size: clamp(0.85rem, 2vw, 1rem);
-    color: #fff;
-    text-shadow: 0 0 8px #000;
-    background: rgba(0, 0, 0, 0.6);
+    color: #0ff;
+    text-shadow: 0 0 8px #0ff;
+    background: rgba(0, 20, 30, 0.7);
     padding: 0.5rem 1.5rem;
-    border-radius: 4px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,255,255,0.2);
     opacity: 0;
     transition: opacity 0.3s;
     text-align: center;
     max-width: 90vw;
+    letter-spacing: 1px;
 }
 
 #message.visible {
@@ -328,10 +357,11 @@ canvas {
     right: 10px;
     width: 160px;
     height: 160px;
-    background: rgba(0, 0, 0, 0.75);
-    border: 1px solid #444;
-    border-radius: 6px;
+    background: rgba(0, 10, 20, 0.8);
+    border: 1px solid rgba(0,255,255,0.25);
+    border-radius: 2px;
     overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,255,255,0.1), inset 0 0 10px rgba(0,0,0,0.5);
 }
 
 #minimap canvas {
@@ -402,8 +432,9 @@ canvas {
     width: 140px;
     height: 140px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 255, 255, 0.04);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0,255,255,0.08);
     position: absolute;
     bottom: 0;
     left: 0;
@@ -413,8 +444,9 @@ canvas {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.25);
-    border: 2px solid rgba(255, 255, 255, 0.45);
+    background: rgba(0, 255, 255, 0.12);
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    box-shadow: 0 0 10px rgba(0,255,255,0.2);
     position: absolute;
     left: 40px;
     bottom: 40px;
@@ -445,10 +477,10 @@ canvas {
     width: 62px;
     height: 62px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
-    font-size: 0.7rem;
+    background: rgba(0, 255, 255, 0.06);
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    color: rgba(255,255,255,0.8);
+    font-size: 0.65rem;
     font-family: 'Courier New', monospace;
     font-weight: bold;
     display: flex;
@@ -459,35 +491,41 @@ canvas {
     touch-action: manipulation;
     line-height: 1.1;
     -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 0 8px rgba(0,255,255,0.1);
+    letter-spacing: 1px;
 }
 
 .mobile-btn:active {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0,255,255,0.3);
 }
 
 #btn-attack {
-    background: rgba(255, 60, 60, 0.2);
-    border-color: rgba(255, 60, 60, 0.5);
+    background: rgba(255, 60, 60, 0.1);
+    border-color: rgba(255, 60, 60, 0.4);
+    box-shadow: 0 0 8px rgba(255,60,60,0.15);
 }
 
 #btn-sprint {
-    background: rgba(255, 150, 0, 0.15);
-    border-color: rgba(255, 150, 0, 0.4);
+    background: rgba(255, 150, 0, 0.08);
+    border-color: rgba(255, 150, 0, 0.3);
+    box-shadow: 0 0 8px rgba(255,150,0,0.1);
 }
 
 #btn-interact {
-    background: rgba(255, 255, 0, 0.15);
-    border-color: rgba(255, 255, 0, 0.4);
+    background: rgba(0, 255, 255, 0.08);
+    border-color: rgba(0, 255, 255, 0.3);
 }
 
 #btn-flashlight {
-    background: rgba(100, 200, 255, 0.15);
-    border-color: rgba(100, 200, 255, 0.4);
+    background: rgba(100, 200, 255, 0.08);
+    border-color: rgba(100, 200, 255, 0.3);
 }
 
 #btn-weapon {
-    background: rgba(150, 100, 255, 0.15);
-    border-color: rgba(150, 100, 255, 0.4);
+    background: rgba(150, 100, 255, 0.08);
+    border-color: rgba(150, 100, 255, 0.3);
+    box-shadow: 0 0 8px rgba(150,100,255,0.1);
 }
 
 /* Low health vignette */
@@ -511,11 +549,13 @@ canvas {
 #loading {
     position: fixed;
     inset: 0;
-    background: #000;
+    background: #050510;
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 200;
-    color: #666;
+    color: #0af;
     font-size: 1.2rem;
+    letter-spacing: 4px;
+    text-shadow: 0 0 10px #0af;
 }
